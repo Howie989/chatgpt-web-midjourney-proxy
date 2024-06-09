@@ -1,40 +1,25 @@
-name: Upstream Sync
-
-permissions:
-  contents: write
+name: Sync upstream master
 
 on:
   schedule:
-    - cron: "0 0 * * *" # every day
-  workflow_dispatch:
+    - cron: '0 0 * * *' # 每天凌晨0点运行（UTC时间）
 
 jobs:
-  sync_latest_from_upstream:
-    name: Sync latest commits from upstream repo
+  sync:
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }}
 
     steps:
-      # Step 1: run a standard checkout action
-      - name: Checkout target repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: run the sync action
-      - name: Sync upstream changes
-        id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+      - name: Fetch upstream
+        run: git fetch upstream
+
+      - name: Merge upstream master
+        run: git merge upstream/master --ff-only
+
+      - name: Push changes
+        if: success()
+        uses: ad-m/github-push-action@master
         with:
-          upstream_sync_repo: Yidadaa/ChatGPT-Next-Web
-          upstream_sync_branch: main
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }} # automatically generated, no need to set
-
-          # Set test_mode true to run tests instead of the true action!!
-          test_mode: false
-
-      - name: Sync check
-        if: failure()
-        run: |
-          echo "::error::由于权限不足，导致同步失败（这是预期的行为），请前往仓库首页手动执行[Sync fork]。"
-          echo "::error::Due to insufficient permissions, synchronization failed (as expected). Please go to the repository homepage and manually perform [Sync fork]."
-          exit 1
+          github_token: ${{ secrets.GITHUB_TOKEN }}
