@@ -1,6 +1,20 @@
 # 功能升级日志
 
 #  计划
+# 2.18.10
+- 🐞 修复：视频按钮提示词，有个小错别字。 #424
+
+# 2.18.9
+- 🐞 修复：luma download_url bug
+- 🐞 修复：claude-3-5-sonnet-20240620传图片直接给我调用gpt-4-vision-preview #423
+
+# 2.18.8
+- 🐞 修复：无法通过?settings={"key":"{key}","url":"{server}"}设置Suno和Luma #412
+- 😄 升级：suno请求带 `/suno` 前缀
+- 🐞 修复：请求新增逆向模型 `gpt-4o-all` #400
+- 😄 新增： `claude-3-5-sonnet-20240620` 模型
+- 🐞 修复：Bug: 手机版Safari下地址栏遮挡界面 #371
+
 # 2.18.7
 - 😄 新增：支持luma视频
 
