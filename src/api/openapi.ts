@@ -50,6 +50,9 @@ export const KnowledgeCutOffDate: Record<string, string> = {
   "gpt-4.5-preview": "2024-10",
   "deepseek-v3": "2023-12",
   "deepseek-r1": "2023-12",
+  "gpt-5": "2024-10",
+  "gpt-5-mini": "2024-06",
+  "gpt-5-nano": "2024-06",
   "gemini-pro-1.5": "2024-04"
 };
 
@@ -399,7 +402,7 @@ return DEFAULT_SYSTEM_TEMPLATE;
 }
 
 export const isNewModel=(model:string)=>{
-    return model.startsWith('o1-')
+    return model.startsWith('o1-') ||   model.includes('gpt-5')
 }
 export const subModel= async (opt: subModelType)=>{
     //
@@ -453,6 +456,8 @@ export const subModel= async (opt: subModelType)=>{
         headers={...headers,...getHeaderAuthorization()}
 
         try {
+            let is_reasoning_content=false
+
             await fetchSSE( gptGetUrl('/v1/chat/completions'),{
                 method: 'POST',
                 headers: headers,
@@ -462,7 +467,19 @@ export const subModel= async (opt: subModelType)=>{
                     if(data=='[DONE]') opt.onMessage({text:'',isFinish:true})
                     else {
                         const obj= JSON.parse(data );
-                        opt.onMessage({text:obj.choices[0].delta?.content??'' ,isFinish:obj.choices[0].finish_reason!=null })
+                        if( obj.choices[0].delta?.reasoning_content ){
+                            if (!is_reasoning_content){
+                                opt.onMessage({text:"\n<think>\n"  ,isFinish: false})
+                            }
+                            opt.onMessage({text:obj.choices[0].delta?.reasoning_content  ,isFinish:obj.choices[0].finish_reason!=null })
+                            is_reasoning_content=true
+                        }else{
+                            if(is_reasoning_content){
+                                 opt.onMessage({text:"\n</think>\n" ,isFinish: false})
+                            }
+                            is_reasoning_content=false
+                            opt.onMessage({text:obj.choices[0].delta?.content??'' ,isFinish:obj.choices[0].finish_reason!=null })
+                        }
                     }
                 },
                 onError(e ){
